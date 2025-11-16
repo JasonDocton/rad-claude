@@ -152,20 +152,22 @@ Replace `/absolute/path/to/` with your actual project path.
 
 #### Zed
 
-Add to Zed settings (`~/.config/zed/settings.json` or via Settings → Extensions):
+Add to Zed settings (`~/.config/zed/settings.json` or via Settings → Assistant → Edit Context Servers):
 
 ```json
 {
   "context_servers": {
     "rad-claude": {
-      "command": {
-        "path": "bun",
-        "args": ["run", "/absolute/path/to/rad-claude/src/index.ts"]
-      }
+      "source": "custom",
+      "command": "bun",
+      "args": ["run", "/absolute/path/to/rad-claude/src/index.ts"],
+      "env": {}
     }
   }
 }
 ```
+
+Replace `/absolute/path/to/` with your actual project path.
 
 **Restart:** Reload Zed or restart the editor.
 

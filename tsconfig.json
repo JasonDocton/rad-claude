@@ -1,0 +1,36 @@
+{
+	"compilerOptions": {
+		// Type checking
+		"strict": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"noFallthroughCasesInSwitch": true,
+		"noUncheckedIndexedAccess": true,
+
+		// Module resolution
+		"target": "ESNext",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"resolveJsonModule": true,
+		"allowSyntheticDefaultImports": true,
+		"esModuleInterop": true,
+		"allowImportingTsExtensions": true,
+		"noEmit": true,
+
+		// Emit
+		"declaration": true,
+		"declarationMap": true,
+		"sourceMap": true,
+		"outDir": "./dist",
+		"rootDir": "./src",
+
+		// Other
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+
+		// Bun types
+		"types": ["bun-types"]
+	},
+	"include": ["src/**/*"],
+	"exclude": ["node_modules", "dist"]
+}

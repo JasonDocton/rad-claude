@@ -108,22 +108,36 @@ Intelligent context preservation to prevent work loss before auto-compact.
 - [Bun](https://bun.sh) 1.2+ (recommended) or Node.js 18+
 - An MCP-compatible client (Claude Desktop, Zed, Cursor, etc.)
 
-### Step 1: Install Dependencies
-
-From the project root:
+### Step 1: Clone and Install
 
 ```bash
+git clone https://github.com/youarerad/rad-claude.git
 cd rad-claude
 bun install
 ```
 
 Or with npm:
-
 ```bash
 npm install
 ```
 
-### Step 2: Configure Your MCP Client
+### Step 2: Find Your Paths
+
+You'll need two absolute paths:
+
+**1. Path to bun executable:**
+```bash
+which bun
+```
+Example output: `/Users/username/.bun/bin/bun` (macOS/Linux) or `C:\Users\username\.bun\bin\bun.exe` (Windows)
+
+**2. Path to rad-claude project:**
+```bash
+pwd
+```
+Example output: `/Users/username/projects/rad-claude` (macOS/Linux) or `C:\Users\username\projects\rad-claude` (Windows)
+
+### Step 3: Configure Your MCP Client
 
 Choose your client:
 
@@ -131,22 +145,26 @@ Choose your client:
 
 Add to `claude_desktop_config.json`:
 
-**macOS/Linux:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+**macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
 **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
 
 ```json
 {
   "mcpServers": {
     "rad-claude": {
-      "command": "bun",
-      "args": ["run", "/absolute/path/to/rad-claude/src/index.ts"],
+      "command": "/Users/username/.bun/bin/bun",
+      "args": ["run", "/Users/username/projects/rad-claude/src/index.ts"],
       "env": {}
     }
   }
 }
 ```
 
-Replace `/absolute/path/to/` with your actual project path.
+**Important:**
+- Replace `/Users/username/.bun/bin/bun` with your actual bun path from `which bun`
+- Replace `/Users/username/projects/rad-claude` with your actual project path from `pwd`
+- Use **full absolute paths**, not `~` or relative paths
+- On Windows, use backslashes: `C:\\Users\\username\\...`
 
 **Restart:** Quit and relaunch Claude Desktop.
 
@@ -159,15 +177,15 @@ Add to Zed settings (`~/.config/zed/settings.json` or via Settings → Assistant
   "context_servers": {
     "rad-claude": {
       "source": "custom",
-      "command": "bun",
-      "args": ["run", "/absolute/path/to/rad-claude/src/index.ts"],
+      "command": "/Users/username/.bun/bin/bun",
+      "args": ["run", "/Users/username/projects/rad-claude/src/index.ts"],
       "env": {}
     }
   }
 }
 ```
 
-Replace `/absolute/path/to/` with your actual project path.
+Replace paths with your actual bun and project paths.
 
 **Restart:** Reload Zed or restart the editor.
 
@@ -179,12 +197,14 @@ Add to Cursor MCP settings (`.cursor/mcp.json` in your project or global setting
 {
   "mcpServers": {
     "rad-claude": {
-      "command": "bun",
-      "args": ["run", "/absolute/path/to/rad-claude/src/index.ts"]
+      "command": "/Users/username/.bun/bin/bun",
+      "args": ["run", "/Users/username/projects/rad-claude/src/index.ts"]
     }
   }
 }
 ```
+
+Replace paths with your actual bun and project paths.
 
 **Restart:** Restart Cursor.
 
@@ -197,26 +217,31 @@ Add to Continue config (`~/.continue/config.json`):
   "mcpServers": [
     {
       "name": "rad-claude",
-      "command": "bun",
-      "args": ["run", "/absolute/path/to/rad-claude/src/index.ts"]
+      "command": "/Users/username/.bun/bin/bun",
+      "args": ["run", "/Users/username/projects/rad-claude/src/index.ts"]
     }
   ]
 }
 ```
+
+Replace paths with your actual bun and project paths.
 
 **Restart:** Reload VS Code window.
 
 #### Other MCP Clients
 
 Most MCP clients support stdio transport servers. Add the MCP server with:
-- **Command:** `bun`
-- **Args:** `["run", "/absolute/path/to/rad-claude/src/index.ts"]`
+- **Command:** Full path to bun (get with `which bun`)
+- **Args:** `["run", "/full/path/to/rad-claude/src/index.ts"]`
 - **Transport:** stdio (standard input/output)
 
-### Step 3: Verify Installation
+### Step 4: Verify Installation
 
-The MCP server should now be available. Test with:
+After restarting your MCP client, verify the server is connected:
 
+**Claude Desktop:** Settings → Developer → MCP Servers → Look for "rad-claude" with ✓ Connected status
+
+**Test with:**
 ```
 Use get_relevant_skills to find skills for: "implement a new React form with validation"
 ```
@@ -250,7 +275,7 @@ This creates `dist/rad-claude` - a 59MB standalone executable that includes the 
 {
   "mcpServers": {
     "rad-claude": {
-      "command": "/absolute/path/to/rad-claude/dist/rad-claude",
+      "command": "/Users/username/projects/rad-claude/dist/rad-claude",
       "args": []
     }
   }
@@ -264,7 +289,7 @@ This creates `dist/rad-claude` - a 59MB standalone executable that includes the 
   "context_servers": {
     "rad-claude": {
       "command": {
-        "path": "/absolute/path/to/rad-claude/dist/rad-claude",
+        "path": "/Users/username/projects/rad-claude/dist/rad-claude",
         "args": []
       }
     }
@@ -275,6 +300,8 @@ This creates `dist/rad-claude` - a 59MB standalone executable that includes the 
 #### Cursor / VS Code / Other Clients
 
 Use the same pattern - point to the binary path with no args needed.
+
+Replace `/Users/username/projects/rad-claude` with your actual project path.
 
 **Benefits (when Bun isn't installed):**
 - ✅ No Bun runtime installation required
@@ -378,9 +405,10 @@ rad-claude/
 
 - **Runtime:** Bun 1.2+ (2-5x faster than Node.js)
 - **Language:** TypeScript 5.9+ (strict mode)
-- **SDK:** @modelcontextprotocol/sdk
-- **Validation:** Zod (runtime + compile-time)
+- **SDK:** @modelcontextprotocol/sdk v1.22+ (modern McpServer API)
+- **Validation:** Zod 4.1+ (runtime + compile-time)
 - **Transport:** stdio (Claude Desktop native)
+- **Architecture:** Modern MCP SDK with structured content + compact text responses
 
 ### Performance Targets
 
@@ -421,12 +449,38 @@ bun run dev
 
 ## Troubleshooting
 
+### "spawn bun ENOENT" or "server disconnected"
+
+**Error:** `MCP rad-claude: spawn bun ENOENT` or `server disconnected`
+
+**Cause:** GUI apps (Claude Desktop, Zed, etc.) can't find `bun` in their PATH.
+
+**Fix:** Use the **full path** to bun instead of just `bun`:
+
+1. Find bun path: `which bun` → `/Users/username/.bun/bin/bun`
+2. Update config to use full path:
+   ```json
+   {
+     "mcpServers": {
+       "rad-claude": {
+         "command": "/Users/username/.bun/bin/bun",
+         "args": ["run", "/Users/username/projects/rad-claude/src/index.ts"]
+       }
+     }
+   }
+   ```
+3. Replace `/Users/username/.bun/bin/bun` with your actual path
+4. Fully quit and restart your MCP client
+
+**On Windows:** Use `where bun` to find the path, then use backslashes: `C:\\Users\\username\\.bun\\bin\\bun.exe`
+
 ### MCP server not appearing
 
 1. **Check config path:** Verify your MCP client's config file location
-2. **Check absolute path:** Ensure MCP server path is absolute, not relative
-3. **Restart client:** Fully quit and relaunch your MCP client
-4. **Check logs:** Most MCP clients have logs (Claude Desktop: Settings → MCP → View Logs)
+2. **Check absolute paths:** Both bun and project paths must be absolute (no `~` or `./`)
+3. **Restart client:** Fully quit and relaunch your MCP client (Cmd+Q on macOS)
+4. **Check logs:** Most MCP clients have logs (Claude Desktop: Settings → Developer → MCP Servers)
+5. **Test command manually:** Run `<your-bun-path> run <your-project-path>/src/index.ts` to verify it works
 
 ### "Skill not found" errors
 
@@ -484,6 +538,12 @@ This MCP server was built and refined through multiple phases:
 7. ✅ **Token Optimization** - 27% reduction in skill content while maintaining clarity
 8. ✅ **Content Scoring** - Semantic pattern matching for intelligent skill detection
 9. ✅ **Semantic Keywords** - 41 keywords added across 4 skills for intent understanding
+
+**Modern Architecture (v2.0.0):**
+10. ✅ **MCP SDK Migration** - Modern McpServer API with tool annotations
+11. ✅ **Structured Content** - Dual response format (compact text + structured data)
+12. ✅ **Output Schemas** - Zod schemas for runtime validation and type safety
+13. ✅ **Code Quality** - Following internal typescript-patterns and naming-conventions skills
 
 See `OPTIMIZATION_SUMMARY.md` for optimization lessons and best practices.
 

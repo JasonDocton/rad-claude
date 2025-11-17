@@ -29,9 +29,9 @@ export class SecurityError extends Error {
  * Validate that a path is within the allowed .claude/ directory
  *
  * Security measures:
- * 1. Resolve symlinks to prevent escape via symbolic links
- * 2. Normalize path to prevent ../ traversal
- * 3. Check that resolved path starts with allowed directory
+ * 1. Check that unresolved path is within .claude/ (symlinks allowed)
+ * 2. Resolve symlinks and validate they stay within project directory
+ * 3. Normalize path to prevent ../ traversal
  *
  * @param targetPath - Path to validate (relative or absolute)
  * @param allowedDir - Allowed directory (should be absolute path to .claude/)
@@ -60,7 +60,24 @@ export function validatePath(
 	const normalizedPath = normalize(targetPath)
 	const absolutePath = resolve(normalizedPath)
 
-	// Step 3: Check if path exists (if it doesn't, we can't resolve symlinks)
+	// Step 3: Check that the UNRESOLVED path is within .claude/
+	// This allows symlinks within .claude/ even if they point outside
+	const allowedPrefix = resolvedAllowedDir.endsWith(sep)
+		? resolvedAllowedDir
+		: resolvedAllowedDir + sep
+
+	if (!absolutePath.startsWith(allowedPrefix)) {
+		return {
+			ok: false,
+			error: new SecurityError(
+				`Access denied: Path is outside allowed directory (.claude/)`,
+				targetPath,
+				'outside_allowed_directory'
+			),
+		}
+	}
+
+	// Step 4: Check if path exists (if it doesn't, we can't resolve symlinks)
 	if (!existsSync(absolutePath)) {
 		return {
 			ok: false,
@@ -72,7 +89,7 @@ export function validatePath(
 		}
 	}
 
-	// Step 4: Resolve symlinks in the target path
+	// Step 5: Resolve symlinks in the target path
 	let resolvedPath: string
 	try {
 		resolvedPath = realpathSync(absolutePath)
@@ -87,25 +104,26 @@ export function validatePath(
 		}
 	}
 
-	// Step 5: Ensure resolved path is within allowed directory
-	// Both paths should end with separator for consistent comparison
-	const allowedPrefix = resolvedAllowedDir.endsWith(sep)
-		? resolvedAllowedDir
-		: resolvedAllowedDir + sep
+	// Step 6: Ensure symlink target is within project directory (not system-wide)
+	// Get project root (parent of .claude/)
+	const projectRoot = resolve(resolvedAllowedDir, '..')
+	const projectPrefix = projectRoot.endsWith(sep)
+		? projectRoot
+		: projectRoot + sep
 
-	if (!resolvedPath.startsWith(allowedPrefix)) {
+	if (!resolvedPath.startsWith(projectPrefix)) {
 		return {
 			ok: false,
 			error: new SecurityError(
-				`Access denied: Path is outside allowed directory (.claude/)`,
+				`Access denied: Symlink points outside project directory`,
 				targetPath,
-				'outside_allowed_directory'
+				'symlink_outside_project'
 			),
 		}
 	}
 
-	// Step 6: Additional check - ensure no path traversal sequences remain
-	if (resolvedPath.includes('..')) {
+	// Step 7: Additional check - ensure no path traversal sequences remain in normalized path
+	if (normalizedPath.includes('..')) {
 		return {
 			ok: false,
 			error: new SecurityError(

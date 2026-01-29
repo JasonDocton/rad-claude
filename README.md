@@ -3,15 +3,11 @@
   <h1>RAD AI</h1>
   <h3>Collaborative Claude Code skills and patterns</h3>
 
-  <a href="https://claude.ai/">
-    <img width="32px" alt="claude" src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Claude_AI_symbol.svg/1200px-Claude_AI_symbol.svg.png">
-  </a>
+
   <a href="https://docs.anthropic.com/en/docs/claude-code">
     <img width="32px" alt="claude code" src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Claude_AI_symbol.svg/1200px-Claude_AI_symbol.svg.png">
   </a>
-  <a href="https://bun.com">
-    <img width="32px" alt="bun" src="https://bun.sh/logo.svg" />
-  </a>
+
 </div>
 
 ---
